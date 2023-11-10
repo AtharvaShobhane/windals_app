@@ -19,7 +19,7 @@ class _Station1State extends State<Station1> {
       body: const Row(
         children: [
           // Text("data"),
-          Station(stationName: "Station 1" )
+          Station(stationName: "Station 2" )
         ],
       ),
       bottomNavigationBar: myFooter,

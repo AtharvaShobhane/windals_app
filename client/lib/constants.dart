@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/station_1.dart';
 import 'screens/myprofile.dart';
 import 'main.dart';
@@ -32,6 +33,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      leading: Container(child: Image.asset('assets/images/windals-logo-removebg.png') , margin: EdgeInsets.only(left: 10),),
       title: Text(
         title,
         style: const TextStyle(
@@ -40,8 +42,14 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: kgrey,
       actions: <Widget>[
         if(isloggedin)IconButton(
-            onPressed: () {
+            onPressed: () async {
+              SharedPreferences prefs =
+                  await SharedPreferences.getInstance();
+              await prefs.clear();
               isloggedin = false;
+              isParam = false;
+              // token = "";
+              jobNames.clear();
               Navigator.pop(context);
             },
             icon: Icon(Icons.logout)),

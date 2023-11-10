@@ -54,7 +54,7 @@ class _StationState extends State<Station> {
             ],
           ),
           const Text("Job IDs", style: TextStyle(fontSize: 20)),
-          Container(width: 350, height: 500, child: const ExpansionPanelDemo())
+          // Container(width: 350, height: 600, child: ExpansionPanelDemo(stationName: widget.stationName,))
 
         ],
       ),
