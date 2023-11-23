@@ -292,6 +292,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         value: dropdownValue,
                         items: getIpItems(),
                         onChanged: (String? newValue) async {
+                          stationlist.clear();
+                          productList.clear();
                           setState(() {
                             _isLoading = true;
                             dropdownValue = newValue;

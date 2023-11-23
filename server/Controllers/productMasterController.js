@@ -23,7 +23,7 @@ async function insertInProductMaster(req,res){
             res.status(201).send({ msg: "Record inserted successfully"});
         }
     } catch (err) {
-        console.error("Database error:", err);
+        console.error(`Database error: ${err}`);
         res.status(500).send({ msg: `Internal server error: ${err}` });
     }
 
@@ -40,7 +40,7 @@ async function insertInProductMaster(req,res){
             res.status(201).send(result)
         }
     }catch(err){
-        console.error("Database error:", err);
+        console.error(`Database error: ${err}`);
         res.status(500).send({msg:`Internal server error: ${err}`})
     }
 }
@@ -63,7 +63,7 @@ async function insertInProductMaster(req,res){
         console.log({"Rows deleted":deleteResult.affectedRows,"Row deleted":selectResult});
         res.status(201).send({msg:`Parameter: ${selectResult[0].parameter} of product: ${selectResult[0].product_name} deleted from database successfully  `})
     }catch(err){
-        console.error("Database error:", err);
+        console.error(`Database error: ${err}`);
         res.status(500).send({msg:`Internal server error: ${err}`})
     }
 }
@@ -86,7 +86,7 @@ async function insertInProductMaster(req,res){
         }
         res.status(200).send({ msg: "Data updated successfully" });
     } catch (err) {
-        console.error("Database error:", err);
+        console.error(`Database error: ${err}`);
         res.status(500).send({ msg: `Internal server error: ${err}` });
     }
 }
@@ -101,7 +101,7 @@ async function getOneProductAllParametersInfoFromProductMaster(req,res){
         }
         res.status(201).send(selectResult)
     }catch(err){
-        console.error("Database error:", err);
+        console.error(`Database error: ${err}`);
         res.status(500).send({ msg: `Internal server error: ${err}` });
     }
 }
@@ -116,18 +116,18 @@ async function getOneProductOneParameterInfoFromProductMaster(req,res){
         }
         res.status(201).send(selectResult)
     }catch(err){
-        console.error("Database error:", err);
+        console.error(`Database error: ${err}`);
         res.status(500).send({ msg: `Internal server error: ${err}` });
     }
 }
 
 async function getProductNames(req,res){
     try {
-        searchQuery = "SELECT product_name FROM product_mastert"
+        const searchQuery = "SELECT DISTINCT product_name FROM product_master"
         const [searchResult] = await db.promise().query(searchQuery)
-        res.status(201).send({searchResult})
-    } catch (error) {
-        console.error("Database error:", err);
+        res.status(201).send(searchResult)
+    } catch (err) {
+        console.error(`Database error: ${err}`);
         res.status(500).send({ msg: `Internal server error: ${err}` });
     }
 }

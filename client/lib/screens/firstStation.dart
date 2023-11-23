@@ -21,6 +21,7 @@ class _FirstStationState extends State<FirstStation> {
   late TextEditingController controllerjobname;
   String? jobName;
   String? selectedProduct = productList.first;
+  late String selectedMachine;
   // String employeeId = widget.empId;
   int stationId = 0;
   @override
@@ -28,6 +29,7 @@ class _FirstStationState extends State<FirstStation> {
     super.initState();
     controllerjobname = TextEditingController();
     getStationId();
+    // getMachines();
   }
 
   @override
@@ -38,7 +40,7 @@ class _FirstStationState extends State<FirstStation> {
 
   void getStationId() async {
     final queParam = {
-      'stationName': "station 1", 'productName': selectedProduct
+      'stationName': "station1", 'productName': selectedProduct
     };
     var stationInfoId = json.decode((await http.get(
       Uri.http(base, getStationIdStationName,queParam),headers: {
@@ -46,11 +48,31 @@ class _FirstStationState extends State<FirstStation> {
     }
     ))
         .body);
+    print(stationInfoId);
     stationId = stationInfoId[0]['station_id'];
+
     print("-------getStationId---------");
     print("stationId - $stationId   productName  - $selectedProduct ");
     print(stationInfoId);
     print(stationInfoId[0]['station_id']);
+    // print(res2);
+  }
+
+  void getMachines() async {
+    machineList.clear();
+    // -------------------- first station machines ----------------------
+    var res2 =  json.decode((await http.post(
+      Uri.http(base, getMachineAtStation) , body: { "stationId" : "$stationId"},
+    ))
+        .body);
+    setState(() {
+      for(var i in res2){
+        machineList[i['machine_name']] = i['machine_id'];
+      }
+      isdonefirstStation = true;
+    });
+    print("mac kist ");
+    print(machineList);
   }
 
   @override
@@ -107,11 +129,15 @@ class _FirstStationState extends State<FirstStation> {
           ),
           DropdownMenu<String>(
             width: MediaQuery.sizeOf(context).width / 1.25,
-            initialSelection: productList.first,
+            // initialSelection: productList.first,
+            hintText: "Select Product",
             onSelected: (String? value) {
               // This is called when the user selects an item.
               setState(() {
+                isdonefirstStation = false;
                 selectedProduct = value!;
+                getStationId();
+                getMachines();
               });
               getStationId();
             },
@@ -120,6 +146,31 @@ class _FirstStationState extends State<FirstStation> {
               return DropdownMenuEntry<String>(value: value, label: value);
             }).toList(),
           ),
+          isdonefirstStation ? Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(bottom: 20, top: 40),
+                child: Text(
+                  "Select Machine - ",
+                  style: kheading2,
+                ),
+              ),
+              DropdownMenu<String>(
+                width: MediaQuery.sizeOf(context).width / 1.25,
+                hintText: "Select Machine",
+                onSelected: (String? value) {
+                  // This is called when the user selects an item.
+                  setState(() {
+                    selectedMachine = value!;
+                  });
+                },
+                dropdownMenuEntries:
+                machineList.keys.map<DropdownMenuEntry<String>>((var value) {
+                  return DropdownMenuEntry<String>(value: value, label: value);
+                }).toList(),
+              ),
+            ],
+          )  : SizedBox.shrink(),
           Padding(
             padding: const EdgeInsets.only(top: 60),
             child: TextButton(
@@ -128,16 +179,19 @@ class _FirstStationState extends State<FirstStation> {
                     backgroundColor: kred,
                     minimumSize: const Size(270, 45)),
                 onPressed: () async {
+                  int macId = machineList[selectedMachine];
                   await http.post(Uri.http(base, postProductyyyy), body: {
                     'product_name': selectedProduct,
                     'job_name': jobName,
-                    'station_id': '$stationId'
+                    'station_id': '$stationId',
+                    'machine_id': '$macId'
                   });
                   await http.post(Uri.http(base, postStationYYYY), body: {
                     'product_name': selectedProduct,
                     'job_name': jobName,
                     'station_id': '$stationId',
-                    'employee_id': widget.empId
+                    'employee_id': widget.empId,
+                    'machine_id': '$macId'
                   });
                   await http.post(Uri.http(base, postInStationyyyyFirstNextStation),
                       body: {
@@ -167,6 +221,7 @@ class _FirstStationState extends State<FirstStation> {
 
                   print(jobName);
                   print(selectedProduct);
+                  print(macId);
                   controllerjobname.clear();
                 },
                 child: const Text(

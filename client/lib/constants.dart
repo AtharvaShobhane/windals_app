@@ -23,6 +23,7 @@ String kapp_bar_text = 'Windals';
 //colors
 const kred = Color(0xFFEB1B24);
 const kgrey = Color(0xFF474747);
+const kdarkblue = Color(0xff1d3557);
 
 Map<String, int> stations = {"Station 1": 1, "Station 1": 3};
 
@@ -39,7 +40,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
         style: const TextStyle(
             fontFamily: 'Poppins', fontSize: 22, fontWeight: FontWeight.w600),
       ),
-      backgroundColor: kgrey,
+      backgroundColor: kdarkblue,
       actions: <Widget>[
         if(isloggedin)IconButton(
             onPressed: () async {
@@ -48,8 +49,10 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
               await prefs.clear();
               isloggedin = false;
               isParam = false;
+              isdonefirstStation = false;
               // token = "";
               jobNames.clear();
+              machineList.clear();
               Navigator.pop(context);
             },
             icon: Icon(Icons.logout)),

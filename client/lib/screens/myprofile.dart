@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:intl/intl.dart';
+import 'package:windals_final/screens/supervisorPage.dart';
 
 class MyProfile extends StatefulWidget {
   const MyProfile({super.key});
@@ -23,7 +24,6 @@ class MyProfile extends StatefulWidget {
 }
 
 class _MyProfileState extends State<MyProfile> {
-
   //make text editing controller
   late TextEditingController controllerusername;
   late TextEditingController controllerpass;
@@ -64,8 +64,7 @@ class _MyProfileState extends State<MyProfile> {
     var mytoken;
     var req = await http.post(Uri.http(base, login),
         body: {"userName": userName, "password": password});
-    var mssg = json.decode((req)
-        .body);
+    var mssg = json.decode((req).body);
     print("----- login mssg -------");
     // print(mssg);
     setState(() {
@@ -81,19 +80,17 @@ class _MyProfileState extends State<MyProfile> {
       _isLoginLoader = false;
     });
 
-
     return mssg['msg'];
   }
 
   void getCurrentShiftFunc() async {
-    var res =  json.decode((await http.get(
+    var res = json.decode((await http.get(
       Uri.http(base, getCurrentShift),
     ))
         .body);
-    currentShift = res['shift_id'] ;
+    currentShift = res['shift_id'];
     print("Current shift - $currentShift");
   }
-
 
   Future<String> getStation(String? userName) async {
     //for todays date and time
@@ -105,15 +102,18 @@ class _MyProfileState extends State<MyProfile> {
     print("-----worker station-----");
     print("emp id - $employeeID");
     var empStation = json.decode((await http.get(
-      Uri.http(base, getOneWorkerStation,
-          {'employeeId': "$employeeID", 'date': finaldate, 'shift': '$currentShift'}),
+      Uri.http(base, getOneWorkerStation, {
+        'employeeId': "$employeeID",
+        'date': finaldate,
+        'shift': '$currentShift'
+      }),
     ))
         .body);
 
-    print(empStation['msg']);
+    print(empStation);
     var msg;
     try {
-      msg = empStation['stationName'];
+      msg = empStation[0]['station_name'];
       return msg;
     } catch (e) {
       msg = empStation['msg'];
@@ -316,24 +316,27 @@ class _MyProfileState extends State<MyProfile> {
                       // password = "";
                     });
                     if (mssg == "Done:Login successful") {
-
                       print("Login success !!");
                       String stationName = await getStation(userName!);
                       //error insert in login log
-                      http.post(Uri.http(base , insertInLoginLog) , body: {
-                        'userName' : userName ,
-                        'stationName' : stationName,
+                      http.post(Uri.http(base, insertInLoginLog), body: {
+                        'userName': userName,
+                        'stationName': stationName,
                       });
 
                       if (stationName != "Null") {
                         pref.setString("stationName", stationName);
                         print("login stationame - $stationName");
-                        if (stationName == 'station 1' || stationName == 's1') {
-                          // Navigator.pop(context);
+                        if (stationName == 'station 1' ||
+                            stationName == 's1' ||
+                            stationName == 'station1') {
+                          //first station
                           Navigator.push(
                             context,
                             CupertinoPageRoute(
-                                builder: (context) => FirstStation(empId: employeeID.toString(),)),
+                                builder: (context) => FirstStation(
+                                      empId: employeeID.toString(),
+                                    )),
                           );
                         } else {
                           // Navigator.pop(context);
@@ -346,7 +349,10 @@ class _MyProfileState extends State<MyProfile> {
                           );
                         }
                       } else {
-                        Navigator.push(context, CupertinoPageRoute(builder: (context) => HomeScreen()));
+                        Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                                builder: (context) => HomeScreen()));
                       }
                     } else {
                       print("NO LOGIN!!");
@@ -380,6 +386,16 @@ class _MyProfileState extends State<MyProfile> {
                         ),
                       ),
               ),
+              ElevatedButton(
+                  onPressed: () {
+                    //supervisor page
+                    Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => SupervisorPage(),
+                        ));
+                  },
+                  child: Text("Supervisor Page")),
               Padding(
                 padding: const EdgeInsets.only(top: 10),
                 child: Text(

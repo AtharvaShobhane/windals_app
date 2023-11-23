@@ -21,14 +21,18 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
   List<String> parametersValue = [];
   List<String> parameters = [];
   int accepted = 0, rejected = 0, rework = 0;
-  String selectedProductAtStation = productList.first;
+  String selectedProductAtStation = "Select Product";
+  late String selectedMachineAtStation;
   late String stationNameforStationId = widget.stationName;
   late int empId = widget.employeeId;
   int stationId = 0;
   var res;
   int numJobs = 0;
   List<Item> _jobs = [];
+  List<Item> _undojobs = [];
+  bool isMachine = false;
   var disableColor = Colors.grey;
+  var productParamMap = {};
 
   //-----------------------------------------------station-id-changed-------------------------------------------------
   void getCount() async {
@@ -73,16 +77,54 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
     var url = Uri.http(base, getOneStation, params);
     // print(url);
     var res = await http.get(url);
+
     var temp = json.decode(res.body);
+    for (var i in temp) {
+      productParamMap[i['product_name']] = i['station_parameters'];
+    }
+    print("----------------product param map-----------");
+    print(productParamMap);
     var st = temp[0];
     // print("--------------------------------------------------------");
-
+    print("station info ----");
+    print(temp);
     if (st["report"] == 1) isParam = true;
-    station_param_str = st['station_parameters'];
-    int numParam = ','.allMatches(station_param_str).length + 1;
-    station_parameters = station_param_str.split(',');
+    // station_param_str = st['station_parameters'];
+    // int numParam = ','.allMatches(station_param_str).length + 1;
+    // station_parameters = station_param_str.split(',');
+    // print(station_param_str);
+    // print(station_parameters);
     // print(st['station_name']);
-    return [isParam, numParam, station_parameters];
+    return [isParam];
+  }
+
+  void getParamDetails(String product_name) async {
+    String param_str = productParamMap[product_name];
+    var param_arr = param_str.split(',');
+    // var param_arr_new = [];
+    print(productParamMap[product_name]);
+    // for(var i in param_arr){
+    //    param_arr_new.add("\'$i\'");
+    // }
+    print(param_arr);
+    setState(() {
+      numParam = ','.allMatches(param_str).length + 1;
+      parameters = param_str.split(',');
+      for (int i = 0; i < parameters.length; i++) {
+        parametersValue.add('0');
+      }
+    });
+
+    // pass array in post
+    Map<String, dynamic> args = {"parameterName": param_arr , "product_name": product_name};
+    var body = json.encode(args);
+    var res = json.decode((await http.post(Uri.http(base, getParamStatus),
+            body: body,  headers: {'Content-type': 'application/json'}))
+        .body);
+    print("-------------param deatils---------------");
+    print(res);
+
+
   }
 
   void getStationId() async {
@@ -96,11 +138,42 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
     ))
         .body);
     stationId = stationInfoId[0]['station_id'];
+    // -----------------------------machine details------------------------------
+    var res2 = json.decode((await http.post(
+      Uri.http(base, getMachineAtStation),
+      body: {"stationId": "$stationId"},
+    ))
+        .body);
+    setState(() {
+      isMachine = true;
+    });
+    for (var i in res2) {
+      machineList[i['machine_name']] = i['machine_id'];
+    }
+
     print("-------getStationId---------");
     print(
         "stationId - $stationId stationName - $stationNameforStationId  productName  - $selectedProductAtStation employeeId - $empId");
     print(stationInfoId);
     print(stationInfoId[0]['station_id']);
+    print(res2);
+  }
+
+  void getMachines() async {
+    machineList.clear();
+    // -------------------- first station machines ----------------------
+    var res2 = json.decode((await http.post(
+      Uri.http(base, getMachineAtStation),
+      body: {"stationId": "$stationId"},
+    ))
+        .body);
+    setState(() {
+      for (var i in res2) {
+        machineList[i['machine_name']] = i['machine_id'];
+      }
+    });
+    print("mac kist ");
+    print(machineList);
   }
 
   void getJobAtStation() async {
@@ -120,6 +193,7 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
     print("is param = $isParam");
     print(jobNames);
     print(_jobs);
+    print(_undojobs);
     print(numJobs);
   }
 
@@ -139,11 +213,6 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
     getOneStationInfo(widget.stationName).then((value) {
       setState(() {
         isParam = value[0];
-        numParam = value[1];
-        parameters = value[2];
-        for (int i = 0; i < parameters.length; i++) {
-          parametersValue.add('0');
-        }
       });
     });
     // getStationId();
@@ -166,32 +235,73 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                DropdownMenu<String>(
-                  width: MediaQuery.sizeOf(context).width / 4,
-                  initialSelection: productList.first,
-                  onSelected: (String? value) {
-                    // This is called when the user selects an item.
+                Column(
+                  children: [
+                    Text("Product - "),
+                    DropdownMenu<String>(
+                      width: MediaQuery.sizeOf(context).width / 4,
+                      // initialSelection: productList.first,
+                      hintText: "Select Product",
+                      onSelected: (String? value) {
+                        // This is called when the user selects an item.
+                        setState(() {
+                          isMachine = false;
+                          selectedProductAtStation = value!;
+                          machineList.clear();
+                          getStationId();
+                          // getMachines();
+                          getParamDetails(selectedProductAtStation);
+                        });
+                      },
+                      dropdownMenuEntries: productList
+                          .map<DropdownMenuEntry<String>>((String value) {
+                        return DropdownMenuEntry<String>(
+                            value: value, label: value);
+                      }).toList(),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  width: 20,
+                ),
+                isMachine
+                    ? Column(
+                        children: [
+                          Text("Machine -"),
+                          DropdownMenu<String>(
+                            width: MediaQuery.sizeOf(context).width / 4,
+                            initialSelection: machineList.keys.first,
+                            onSelected: (String? value) {
+                              // This is called when the user selects an item.
+                              setState(() {
+                                selectedMachineAtStation = value!;
+                              });
+                            },
+                            dropdownMenuEntries: machineList.keys
+                                .map<DropdownMenuEntry<String>>((var value) {
+                              return DropdownMenuEntry<String>(
+                                  value: value, label: value);
+                            }).toList(),
+                          ),
+                        ],
+                      )
+                    : SizedBox.shrink(),
+                SizedBox(
+                  width: 20,
+                ),
+                ElevatedButton(
+                  onPressed: () {
                     setState(() {
-                      selectedProductAtStation = value!;
-                      getStationId();
+                      jobNames.clear();
+                      getJobAtStation();
+                      getCount();
+                      // getStationId();
                     });
                   },
-                  dropdownMenuEntries: productList
-                      .map<DropdownMenuEntry<String>>((String value) {
-                    return DropdownMenuEntry<String>(
-                        value: value, label: value);
-                  }).toList(),
+                  child: Icon(Icons.refresh, color: Colors.white),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xff457b9d)),
                 ),
-                IconButton(
-                    onPressed: () {
-                      setState(() {
-                        jobNames.clear();
-                        getJobAtStation();
-                        getCount();
-                        // getStationId();
-                      });
-                    },
-                    icon: Icon(Icons.refresh)),
               ],
             ),
             DataTable(columns: [
@@ -210,6 +320,49 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
               padding: const EdgeInsets.only(top: 20),
               child: _buildPanel(),
             ),
+            SizedBox(
+              height: 70,
+            ),
+            Text(
+              "Undo Tasks",
+              style: TextStyle(fontSize: 15),
+            ),
+            Divider(
+              color: Colors.black,
+              thickness: 3,
+            ),
+            Container(
+              height: 300,
+              // color: Colors.black12,
+              width: 200,
+              child: ListView.builder(
+                // scrollDirection: Axis.horizontal,
+                itemCount: _undojobs.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return ListTile(
+                    shape: const RoundedRectangleBorder(
+                      side: BorderSide(width: 1.5),
+                      // borderRadius: BorderRadius.circular(10),
+                    ),
+                    title: Text(
+                      _undojobs[index].headerValue,
+                      style: TextStyle(fontSize: 15, color: Colors.red),
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(Icons.undo),
+                      onPressed: () {
+                        setState(() {
+                          _jobs.add(_undojobs[index]);
+                          // getJobAtStation();
+                          _undojobs.removeWhere(
+                              (element) => element == _undojobs[index]);
+                        });
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -217,7 +370,6 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
   }
 
   Widget _buildPanel() {
-    // print(_formKeys.length);
     return ExpansionPanelList(
       expansionCallback: (int index, bool isExpanded) {
         setState(() {
@@ -233,199 +385,232 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
               title: Text(item.headerValue),
             );
           },
-          body: Column(
-            children: [
-              ListTile(
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[
-                    IconButton(
-                      onPressed: () async {
-                        var paramString = "";
-                        for (int i = 0; i < numParam; i++) {
-                          paramString +=
-                              parameters[i] + ':' + parametersValue[i] + ';';
-                        }
-                        print(parametersValue);
+          body: Container(
+            decoration: BoxDecoration(color: Color(0xFFEAEAEA)),
+            padding: EdgeInsets.only(top: 20),
+            child: Column(
+              children: [
+                ListTile(
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      Container(
+                        width: 150,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            var paramString = "";
+                            int macid = machineList[selectedMachineAtStation];
+                            for (int i = 0; i < numParam; i++) {
+                              paramString += parameters[i] +
+                                  ':' +
+                                  parametersValue[i] +
+                                  ';';
+                            }
+                            print(parametersValue);
 
-                        http.put(Uri.http(base, updateStationyyyy), body: {
-                          'product_name':
-                              getproductnamefromjobname(item.headerValue),
-                          'station_id': '$stationId',
-                          'job_name': item.headerValue,
-                          'employee_id': '$empId',
-                          'status': '1',
-                          'parameters': paramString
-                        });
+                            http.put(Uri.http(base, updateStationyyyy), body: {
+                              'product_name':
+                                  getproductnamefromjobname(item.headerValue),
+                              'station_id': '$stationId',
+                              'job_name': item.headerValue,
+                              'employee_id': '$empId',
+                              'status': '1',
+                              'parameters': paramString,
+                              'machine_id': '$macid'
+                            });
 
-                        Map data = {
-                          "station_id": "$stationId",
-                          "job_name": '${item.headerValue}',
-                          "product_name":
-                              '${getproductnamefromjobname(item.headerValue)}'
-                        };
-                        var body = json.encode(data);
-                        print(body);
-                        print(item.headerValue);
-                        await http.post(
-                            Uri.http(base, postInStationyyyyFirstNextStation),
-                            headers: {"Content-Type": "application/json"},
-                            body: body);
+                            Map data = {
+                              "station_id": "$stationId",
+                              "job_name": '${item.headerValue}',
+                              "product_name":
+                                  '${getproductnamefromjobname(item.headerValue)}'
+                            };
+                            var body = json.encode(data);
+                            print(body);
+                            print(item.headerValue);
+                            await http.post(
+                                Uri.http(
+                                    base, postInStationyyyyFirstNextStation),
+                                headers: {"Content-Type": "application/json"},
+                                body: body);
 
-                        setState(() {
-                          _jobs.removeWhere(
-                              (Item currentItem) => item == currentItem);
-                        });
-                        getCount();
-                      },
-                      icon: const Icon(Icons.check_rounded,
-                          color: Colors.green, size: 24.0),
-                    ),
-                    IconButton(
-                      onPressed: () async {
-                        var paramString = "";
-                        for (int i = 0; i < numParam; i++) {
-                          paramString +=
-                              parameters[i] + ':' + parametersValue[i] + ';';
-                        }
+                            setState(() {
+                              _jobs.removeWhere(
+                                  (Item currentItem) => item == currentItem);
+                              _undojobs.add(item);
+                            });
 
-                        //reason text
-                        final rejectReasonText = await opendialog();
-                        print("Reject Reason -- $rejectReasonText");
-                        paramString =
-                            "notok:" + rejectReasonText! + ";" + paramString;
-                        http.put(Uri.http(base, updateStationyyyy), body: {
-                          'product_name':
-                              getproductnamefromjobname(item.headerValue),
-                          'station_id': '$stationId',
-                          'job_name': item.headerValue,
-                          'employee_id': '$empId',
-                          'status': '0',
-                          'parameters': paramString
-                        });
-                        setState(() {
-                          _jobs.removeWhere(
-                              (Item currentItem) => item == currentItem);
-                        });
-                        getCount();
-                      },
-                      icon: const Icon(
-                        Icons.clear_rounded,
-                        color: Colors.red,
-                        size: 30.0,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () async {
-                        //param string
-                        var paramString = "";
-                        for (int i = 0; i < numParam; i++) {
-                          paramString +=
-                              parameters[i] + ':' + parametersValue[i] + ';';
-                        }
-
-                        //dialogue box
-                        final reworkReasonText = await opendialog();
-                        print("Rework Reason -- $reworkReasonText");
-
-                        //api calls
-                        http.put(Uri.http(base, updateStationyyyy), body: {
-                          'product_name':
-                              getproductnamefromjobname(item.headerValue),
-                          'station_id': '$stationId',
-                          'job_name': item.headerValue,
-                          'employee_id': '$empId',
-                          'status': '2',
-                          'parameters': paramString
-                        });
-
-                        setState(() {
-                          _jobs.removeWhere(
-                              (Item currentItem) => item == currentItem);
-                        });
-                        getCount();
-                      },
-                      icon: const Icon(
-                        Icons.redo,
-                        color: Colors.orange,
-                        size: 30.0,
-                      ),
-                    ),
-                    // IconButton(
-                    //     onPressed: () async {
-                    //
-                    //     },
-                    //     icon: Icon(
-                    //       Icons.next_plan_rounded,
-                    //       color: Colors.black,
-                    //       size: 30,
-                    //     ))
-                  ],
-                ),
-              ),
-              SingleChildScrollView(
-                child: isParam
-                    ? Container(
-                        height: 400,
-                        width: 250,
-                        child: Column(
-                          children: List.generate(numParam, (int index) {
-                            return Padding(
-                              padding: EdgeInsets.only(top: 30),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 10),
-                                        child: Text(parameters[index]),
-                                      ),
-                                      SizedBox(
-                                        width: 100,
-                                        height: 30,
-                                        child: TextField(
-                                          // controller: paramcontroller[index],
-                                          keyboardType: TextInputType.number,
-
-                                          decoration: const InputDecoration(
-                                            focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Colors.blueAccent,
-                                                  width: 1),
-                                            ),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Colors.black, width: 1),
-                                            ),
-                                          ),
-                                          onChanged: (String? value) {
-                                            if (value != null) {
-                                              parametersValue[index] = value;
-                                              print(parameters[index] +
-                                                  " " +
-                                                  parametersValue[index]);
-                                            }
-                                          },
-                                        ),
-                                      ),
-                                      IconButton(onPressed: (){
-                                        setState(() {
-
-                                        });
-                                      }, icon: Icon(Icons.check_box , color: Colors.greenAccent,)),
-                                      IconButton(onPressed: (){}, icon: Icon(Icons.clear ,color: Colors.red,))
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
+                            getCount();
+                          },
+                          child: const Icon(Icons.check_rounded,
+                              color: Colors.white, size: 24.0),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                          ),
                         ),
-                      )
-                    : null,
-              ),
-            ],
+                      ),
+                      Container(
+                        width: 150,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            var paramString = "";
+                            for (int i = 0; i < numParam; i++) {
+                              paramString += parameters[i] +
+                                  ':' +
+                                  parametersValue[i] +
+                                  ';';
+                            }
+
+                            //reason text
+                            final rejectReasonText = await opendialog();
+                            print("Reject Reason -- $rejectReasonText");
+                            paramString = "notok:" +
+                                rejectReasonText! +
+                                ";" +
+                                paramString;
+
+                            int macid = machineList[selectedMachineAtStation];
+                            http.put(Uri.http(base, updateStationyyyy), body: {
+                              'product_name':
+                                  getproductnamefromjobname(item.headerValue),
+                              'station_id': '$stationId',
+                              'job_name': item.headerValue,
+                              'employee_id': '$empId',
+                              'status': '-1',
+                              'parameters': paramString,
+                              'machine_id': '$macid'
+                            });
+                            setState(() {
+                              _jobs.removeWhere(
+                                  (Item currentItem) => item == currentItem);
+                              _undojobs.add(item);
+                            });
+
+                            getCount();
+                          },
+                          child: const Icon(
+                            Icons.clear_rounded,
+                            color: Colors.white,
+                            size: 30.0,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                        ),
+                      ),
+                      // IconButton(
+                      //   onPressed: () async {
+                      //     //param string
+                      //     var paramString = "";
+                      //     for (int i = 0; i < numParam; i++) {
+                      //       paramString +=
+                      //           parameters[i] + ':' + parametersValue[i] + ';';
+                      //     }
+                      //
+                      //     //dialogue box
+                      //     final reworkReasonText = await opendialog();
+                      //     print("Rework Reason -- $reworkReasonText");
+                      //
+                      //     //api calls
+                      //     http.put(Uri.http(base, updateStationyyyy), body: {
+                      //       'product_name':
+                      //           getproductnamefromjobname(item.headerValue),
+                      //       'station_id': '$stationId',
+                      //       'job_name': item.headerValue,
+                      //       'employee_id': '$empId',
+                      //       'status': '2',
+                      //       'parameters': paramString
+                      //     });
+                      //
+                      //     setState(() {
+                      //       _jobs.removeWhere(
+                      //           (Item currentItem) => item == currentItem);
+                      //       _undojobs.add(item);
+                      //     });
+                      //     getCount();
+                      //   },
+                      //   icon: const Icon(
+                      //     Icons.redo,
+                      //     color: Colors.orange,
+                      //     size: 30.0,
+                      //   ),
+                      // ),
+                    ],
+                  ),
+                ),
+                SingleChildScrollView(
+                  child: isParam
+                      ? Container(
+                          height: 400,
+                          width: 250,
+                          child: Column(
+                            children: List.generate(numParam, (int index) {
+                              return Padding(
+                                padding: EdgeInsets.only(top: 30),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 10),
+                                          child: Text(parameters[index]),
+                                        ),
+                                        SizedBox(
+                                          width: 100,
+                                          height: 30,
+                                          child: TextField(
+                                            // controller: paramcontroller[index],
+                                            keyboardType: TextInputType.number,
+
+                                            decoration: const InputDecoration(
+                                              focusedBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.blueAccent,
+                                                    width: 1),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.black,
+                                                    width: 1),
+                                              ),
+                                            ),
+                                            onChanged: (String? value) {
+                                              if (value != null) {
+                                                parametersValue[index] = value;
+                                                print(parameters[index] +
+                                                    " " +
+                                                    parametersValue[index]);
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                        IconButton(
+                                            onPressed: () {
+                                              setState(() {});
+                                            },
+                                            icon: Icon(
+                                              Icons.check_box,
+                                              color: Colors.greenAccent,
+                                            )),
+                                        IconButton(
+                                            onPressed: () {},
+                                            icon: Icon(
+                                              Icons.clear,
+                                              color: Colors.red,
+                                            ))
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                          ),
+                        )
+                      : null,
+                ),
+              ],
+            ),
           ),
           isExpanded: item.isExpanded,
         );
