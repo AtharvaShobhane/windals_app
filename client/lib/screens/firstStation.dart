@@ -82,154 +82,156 @@ class _FirstStationState extends State<FirstStation> {
         title: 'Windals',
       ),
       // endDrawer: const MyDrawer(),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 20),
-            child: Text(
-              "First Station",
-              style: kheading1,
-            ),
-          ),
-          SizedBox(
-            width: MediaQuery.sizeOf(context).width,
-            height: 60,
-          ),
-          const Padding(
-            padding: EdgeInsets.only(bottom: 20),
-            child: Text(
-              "Enter Job Name - ",
-              style: kheading2,
-            ),
-          ),
-          Container(
-            width: MediaQuery.sizeOf(context).width / 1.25,
-            child: TextField(
-              controller: controllerjobname,
-              decoration: const InputDecoration(
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blueAccent, width: 1.5),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black, width: 1.5),
-                ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 20),
+              child: Text(
+                "First Station",
+                style: kheading1,
               ),
-              onChanged: (String? value) {
-                jobName = value;
-              },
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(bottom: 20, top: 40),
-            child: Text(
-              "Select Product - ",
-              style: kheading2,
+            SizedBox(
+              width: MediaQuery.sizeOf(context).width,
+              height: 60,
             ),
-          ),
-          DropdownMenu<String>(
-            width: MediaQuery.sizeOf(context).width / 1.25,
-            // initialSelection: productList.first,
-            hintText: "Select Product",
-            onSelected: (String? value) {
-              // This is called when the user selects an item.
-              setState(() {
-                isdonefirstStation = false;
-                selectedProduct = value!;
+            const Padding(
+              padding: EdgeInsets.only(bottom: 20),
+              child: Text(
+                "Enter Job Name - ",
+                style: kheading2,
+              ),
+            ),
+            Container(
+              width: MediaQuery.sizeOf(context).width / 1.25,
+              child: TextField(
+                controller: controllerjobname,
+                decoration: const InputDecoration(
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blueAccent, width: 1.5),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black, width: 1.5),
+                  ),
+                ),
+                onChanged: (String? value) {
+                  jobName = value;
+                },
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 20, top: 40),
+              child: Text(
+                "Select Product - ",
+                style: kheading2,
+              ),
+            ),
+            DropdownMenu<String>(
+              width: MediaQuery.sizeOf(context).width / 1.25,
+              // initialSelection: productList.first,
+              hintText: "Select Product",
+              onSelected: (String? value) {
+                // This is called when the user selects an item.
+                setState(() {
+                  isdonefirstStation = false;
+                  selectedProduct = value!;
+                  getStationId();
+                  getMachines();
+                });
                 getStationId();
-                getMachines();
-              });
-              getStationId();
-            },
-            dropdownMenuEntries:
-                productList.map<DropdownMenuEntry<String>>((String value) {
-              return DropdownMenuEntry<String>(value: value, label: value);
-            }).toList(),
-          ),
-          isdonefirstStation ? Column(
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(bottom: 20, top: 40),
-                child: Text(
-                  "Select Machine - ",
-                  style: kheading2,
+              },
+              dropdownMenuEntries:
+                  productList.map<DropdownMenuEntry<String>>((String value) {
+                return DropdownMenuEntry<String>(value: value, label: value);
+              }).toList(),
+            ),
+            isdonefirstStation ? Column(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 20, top: 40),
+                  child: Text(
+                    "Select Machine - ",
+                    style: kheading2,
+                  ),
                 ),
-              ),
-              DropdownMenu<String>(
-                width: MediaQuery.sizeOf(context).width / 1.25,
-                hintText: "Select Machine",
-                onSelected: (String? value) {
-                  // This is called when the user selects an item.
-                  setState(() {
-                    selectedMachine = value!;
-                  });
-                },
-                dropdownMenuEntries:
-                machineList.keys.map<DropdownMenuEntry<String>>((var value) {
-                  return DropdownMenuEntry<String>(value: value, label: value);
-                }).toList(),
-              ),
-            ],
-          )  : SizedBox.shrink(),
-          Padding(
-            padding: const EdgeInsets.only(top: 60),
-            child: TextButton(
-                style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: kred,
-                    minimumSize: const Size(270, 45)),
-                onPressed: () async {
-                  int macId = machineList[selectedMachine];
-                  await http.post(Uri.http(base, postProductyyyy), body: {
-                    'product_name': selectedProduct,
-                    'job_name': jobName,
-                    'station_id': '$stationId',
-                    'machine_id': '$macId'
-                  });
-                  await http.post(Uri.http(base, postStationYYYY), body: {
-                    'product_name': selectedProduct,
-                    'job_name': jobName,
-                    'station_id': '$stationId',
-                    'employee_id': widget.empId,
-                    'machine_id': '$macId'
-                  });
-                  await http.post(Uri.http(base, postInStationyyyyFirstNextStation),
-                      body: {
-                        'product_name': selectedProduct,
-                        'job_name': jobName,
-                        'station_id': '$stationId',
-                      });
-                  showDialog(
-                      barrierColor: Colors.transparent,
-                      context: context,
-                      builder: (context) {
-                        Future.delayed(Duration(seconds: 1), () {
-                          Navigator.of(context).pop(true);
+                DropdownMenu<String>(
+                  width: MediaQuery.sizeOf(context).width / 1.25,
+                  hintText: "Select Machine",
+                  onSelected: (String? value) {
+                    // This is called when the user selects an item.
+                    setState(() {
+                      selectedMachine = value!;
+                    });
+                  },
+                  dropdownMenuEntries:
+                  machineList.keys.map<DropdownMenuEntry<String>>((var value) {
+                    return DropdownMenuEntry<String>(value: value, label: value);
+                  }).toList(),
+                ),
+              ],
+            )  : SizedBox.shrink(),
+            Padding(
+              padding: const EdgeInsets.only(top: 60),
+              child: TextButton(
+                  style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: kred,
+                      minimumSize: const Size(270, 45)),
+                  onPressed: () async {
+                    int macId = machineList[selectedMachine];
+                    await http.post(Uri.http(base, postProductyyyy), body: {
+                      'product_name': selectedProduct,
+                      'job_name': jobName,
+                      'station_id': '$stationId',
+                      'machine_id': '$macId'
+                    });
+                    await http.post(Uri.http(base, postStationYYYY), body: {
+                      'product_name': selectedProduct,
+                      'job_name': jobName,
+                      'station_id': '$stationId',
+                      'employee_id': widget.empId,
+                      'machine_id': '$macId'
+                    });
+                    await http.post(Uri.http(base, postInStationyyyyFirstNextStation),
+                        body: {
+                          'product_name': selectedProduct,
+                          'job_name': jobName,
+                          'station_id': '$stationId',
                         });
-                        return Container(
-                          // padding: EdgeInsets.only(bottom: 50),
-                          child: const AlertDialog(
-                            // backgroundColor: Colors.black12,
-                            title: Text(
-                              'Job Successfully Added!',
-                              style:
-                                  TextStyle(fontSize: 12, color: Colors.green),
+                    showDialog(
+                        barrierColor: Colors.transparent,
+                        context: context,
+                        builder: (context) {
+                          Future.delayed(Duration(seconds: 1), () {
+                            Navigator.of(context).pop(true);
+                          });
+                          return Container(
+                            // padding: EdgeInsets.only(bottom: 50),
+                            child: const AlertDialog(
+                              // backgroundColor: Colors.black12,
+                              title: Text(
+                                'Job Successfully Added!',
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.green),
+                              ),
                             ),
-                          ),
-                        );
-                      });
+                          );
+                        });
 
-                  print(jobName);
-                  print(selectedProduct);
-                  print(macId);
-                  controllerjobname.clear();
-                },
-                child: const Text(
-                  'Add Job',
-                  style: TextStyle(fontSize: 18),
-                )),
-          )
-        ],
+                    print(jobName);
+                    print(selectedProduct);
+                    print(macId);
+                    controllerjobname.clear();
+                  },
+                  child: const Text(
+                    'Add Job',
+                    style: TextStyle(fontSize: 18),
+                  )),
+            )
+          ],
+        ),
       ),
     );
   }

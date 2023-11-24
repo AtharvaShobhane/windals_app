@@ -107,6 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
     for (var i in temp) {
       // print(i['station_name']);
       stationlist.add(i['station_name']);
+      stationidNamemap[i['station_id']] = i['station_name'];
     }
     print(stationlist);
     await Future.delayed(const Duration(seconds: 2));

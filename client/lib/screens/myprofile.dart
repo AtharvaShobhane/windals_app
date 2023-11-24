@@ -77,7 +77,6 @@ class _MyProfileState extends State<MyProfile> {
         print("Token - " + mytoken);
         print(JwtDecoder.isExpired(mytoken));
       }
-      _isLoginLoader = false;
     });
 
     return mssg['msg'];
@@ -92,15 +91,14 @@ class _MyProfileState extends State<MyProfile> {
     print("Current shift - $currentShift");
   }
 
-  Future<String> getStation(String? userName) async {
+  Future<List<String>> getStation(String? userName) async {
     //for todays date and time
     DateTime now = new DateTime.now();
     DateTime date = new DateTime(now.year, now.month, now.day);
     var finaldate = date.toString().replaceAll("00:00:00.000", "");
     print(finaldate);
+    List<String> workerStation=[];
 
-    print("-----worker station-----");
-    print("emp id - $employeeID");
     var empStation = json.decode((await http.get(
       Uri.http(base, getOneWorkerStation, {
         'employeeId': "$employeeID",
@@ -109,16 +107,21 @@ class _MyProfileState extends State<MyProfile> {
       }),
     ))
         .body);
-
+    print("-----worker station-----");
+    print("emp id - $employeeID");
     print(empStation);
+
     var msg;
     try {
-      msg = empStation[0]['station_name'];
+      for(var i in empStation){
+        workerStation.add(i['station_name']);
+      }
+      msg = workerStation;
       return msg;
     } catch (e) {
       msg = empStation['msg'];
     }
-    return "Null";
+    return [];
   }
 
   Widget build(BuildContext context) {
@@ -317,43 +320,26 @@ class _MyProfileState extends State<MyProfile> {
                     });
                     if (mssg == "Done:Login successful") {
                       print("Login success !!");
-                      String stationName = await getStation(userName!);
-                      //error insert in login log
-                      http.post(Uri.http(base, insertInLoginLog), body: {
-                        'userName': userName,
-                        'stationName': stationName,
+                      List<String> stationNames = await getStation(userName!);
+                      //insert in login log
+                      for(var i in stationNames){
+                        http.post(Uri.http(base, insertInLoginLog), body: {
+                          'userName': userName,
+                          'stationName': i,
+                        });
+                      }
+
+                      bool isStationAllocated = false;
+                      if(stationNames.length != 0)isStationAllocated=true;
+                      setState(() {
+                        _isLoginLoader = false;
                       });
 
-                      if (stationName != "Null") {
-                        pref.setString("stationName", stationName);
-                        print("login stationame - $stationName");
-                        if (stationName == 'station 1' ||
-                            stationName == 's1' ||
-                            stationName == 'station1') {
-                          //first station
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                                builder: (context) => FirstStation(
-                                      empId: employeeID.toString(),
-                                    )),
-                          );
-                        } else {
-                          // Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                                builder: (context) => ParamStation(
-                                    stationName: stationName,
-                                    employeeId: employeeID!)),
-                          );
-                        }
-                      } else {
-                        Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                                builder: (context) => HomeScreen()));
-                      }
+                      Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (context) => HomeScreen(stationName: stationNames, isStationAllocated: isStationAllocated , empId: employeeID!,)));
+
                     } else {
                       print("NO LOGIN!!");
                       showDialog(

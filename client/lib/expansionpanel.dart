@@ -4,6 +4,7 @@ import 'globals.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class ExpansionPanelDemo extends StatefulWidget {
   ExpansionPanelDemo(
@@ -29,10 +30,17 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
   var res;
   int numJobs = 0;
   List<Item> _jobs = [];
-  List<Item> _undojobs = [];
+  var _undojobs = [];
   bool isMachine = false;
   var disableColor = Colors.grey;
   var productParamMap = {};
+  List<bool> isValuedParam = [];
+  String selectedOkNotOk = "O";
+  bool isChecked = false;
+  bool _isLoginLoader = false;
+
+  // late bool checkboxState;
+  // late Function(bool?) toggleCheckboxState;
 
   //-----------------------------------------------station-id-changed-------------------------------------------------
   void getCount() async {
@@ -116,15 +124,26 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
     });
 
     // pass array in post
-    Map<String, dynamic> args = {"parameterName": param_arr , "product_name": product_name};
+    Map<String, dynamic> args = {
+      "parameterName": param_arr,
+      "product_name": product_name
+    };
+
     var body = json.encode(args);
     var res = json.decode((await http.post(Uri.http(base, getParamStatus),
-            body: body,  headers: {'Content-type': 'application/json'}))
+            body: body, headers: {'Content-type': 'application/json'}))
         .body);
     print("-------------param deatils---------------");
     print(res);
-
-
+    setState(() {
+      for (var i in res['result']) {
+        if (i['value_oknotok'] == 1)
+          isValuedParam.add(true);
+        else
+          isValuedParam.add(false);
+      }
+    });
+    print(isValuedParam);
   }
 
   void getStationId() async {
@@ -157,6 +176,9 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
     print(stationInfoId);
     print(stationInfoId[0]['station_id']);
     print(res2);
+    setState(() {
+      _isLoginLoader=false;
+    });
   }
 
   void getMachines() async {
@@ -195,6 +217,23 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
     print(_jobs);
     print(_undojobs);
     print(numJobs);
+    setState(() {
+      _isLoginLoader = false;
+    });
+  }
+
+  void getJobSubmittedAtStation() async {
+    print("-------- job submitted at station --------------");
+    DateTime now = new DateTime.now();
+    DateTime date = new DateTime(now.year, now.month, now.day);
+    var finaldate = date.toString().replaceAll("00:00:00.000", "");
+    print("$stationId $finaldate");
+    var res = json.decode(
+        (await http.get(Uri.http(base, StationyyyyWorkAtStationInDay , {'stationId' : '$stationId' , 'date' : finaldate}))).body);
+    print(res);
+    setState(() {
+      _undojobs = res;
+    });
   }
 
   int currentItemKey = 0;
@@ -245,6 +284,7 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                       onSelected: (String? value) {
                         // This is called when the user selects an item.
                         setState(() {
+                          _isLoginLoader = true;
                           isMachine = false;
                           selectedProductAtStation = value!;
                           machineList.clear();
@@ -270,7 +310,8 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                           Text("Machine -"),
                           DropdownMenu<String>(
                             width: MediaQuery.sizeOf(context).width / 4,
-                            initialSelection: machineList.keys.first,
+                            // initialSelection: machineList.keys.first,
+                            hintText: "Select",
                             onSelected: (String? value) {
                               // This is called when the user selects an item.
                               setState(() {
@@ -289,18 +330,28 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                 SizedBox(
                   width: 20,
                 ),
-                ElevatedButton(
+                _isLoginLoader
+                    ? Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10) , color: Color(0xffE63946)),
+                      child: LoadingAnimationWidget.threeArchedCircle(
+                      color: Color(0xffF1FAEE), size: 20),
+                    )
+                    : ElevatedButton(
                   onPressed: () {
                     setState(() {
+                      _isLoginLoader = true;
                       jobNames.clear();
                       getJobAtStation();
                       getCount();
+                      getJobSubmittedAtStation();
                       // getStationId();
                     });
                   },
-                  child: Icon(Icons.refresh, color: Colors.white),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xff457b9d)),
+                  child:Icon(Icons.refresh, color: Colors.white),
                 ),
               ],
             ),
@@ -333,31 +384,31 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
             ),
             Container(
               height: 300,
-              // color: Colors.black12,
-              width: 200,
               child: ListView.builder(
-                // scrollDirection: Axis.horizontal,
                 itemCount: _undojobs.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return ListTile(
-                    shape: const RoundedRectangleBorder(
-                      side: BorderSide(width: 1.5),
-                      // borderRadius: BorderRadius.circular(10),
-                    ),
-                    title: Text(
-                      _undojobs[index].headerValue,
-                      style: TextStyle(fontSize: 15, color: Colors.red),
-                    ),
-                    trailing: IconButton(
-                      icon: Icon(Icons.undo),
-                      onPressed: () {
-                        setState(() {
-                          _jobs.add(_undojobs[index]);
-                          // getJobAtStation();
-                          _undojobs.removeWhere(
-                              (element) => element == _undojobs[index]);
-                        });
-                      },
+                  return SizedBox(
+                    width: 500,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 5),
+                      child: ListTile(subtitle: Text("Product Name - ${_undojobs[index]['product_name']}" , style: TextStyle(fontWeight: FontWeight.w500),),
+                        tileColor: _undojobs[index]['status'] != 1 ? Color(0xffE63946) : Color(0xff00cc00), // shape: const RoundedRectangleBorder(
+                        //   side: BorderSide(width: 1),
+                        //   // borderRadius: BorderRadius.circular(10),
+                        // ),
+                        title: Text(
+                          _undojobs[index]['job_name'],
+                          style: TextStyle(fontSize: 17, color: Colors.white , fontWeight: FontWeight.w800),
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.undo , color: Colors.white,),
+                          onPressed: () {
+                            setState(() {
+
+                            });
+                          },
+                        ),
+                      ),
                     ),
                   );
                 },
@@ -370,6 +421,14 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
   }
 
   Widget _buildPanel() {
+    void checkBoxCallBack(bool? checkboxState) {
+      setState(() {
+        isChecked = checkboxState ?? true;
+      });
+      print("ischecked - ");
+      print(isChecked);
+    }
+
     return ExpansionPanelList(
       expansionCallback: (int index, bool isExpanded) {
         setState(() {
@@ -401,10 +460,12 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                             var paramString = "";
                             int macid = machineList[selectedMachineAtStation];
                             for (int i = 0; i < numParam; i++) {
-                              paramString += parameters[i] +
-                                  ':' +
-                                  parametersValue[i] +
-                                  ';';
+                              if (parametersValue[i] == '0') {
+                                paramString += '${parameters[i]}:O;';
+                              } else {
+                                paramString +=
+                                    '${parameters[i]}:${parametersValue[i]};';
+                              }
                             }
                             print(parametersValue);
 
@@ -437,10 +498,10 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                             setState(() {
                               _jobs.removeWhere(
                                   (Item currentItem) => item == currentItem);
-                              _undojobs.add(item);
                             });
 
                             getCount();
+                            getJobSubmittedAtStation();
                           },
                           child: const Icon(Icons.check_rounded,
                               color: Colors.white, size: 24.0),
@@ -455,12 +516,13 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                           onPressed: () async {
                             var paramString = "";
                             for (int i = 0; i < numParam; i++) {
-                              paramString += parameters[i] +
-                                  ':' +
-                                  parametersValue[i] +
-                                  ';';
+                              if (parametersValue[i] == '0') {
+                                paramString += '${parameters[i]}:N;';
+                              } else {
+                                paramString +=
+                                    '${parameters[i]}:${parametersValue[i]};';
+                              }
                             }
-
                             //reason text
                             final rejectReasonText = await opendialog();
                             print("Reject Reason -- $rejectReasonText");
@@ -487,6 +549,7 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                             });
 
                             getCount();
+                            getJobSubmittedAtStation();
                           },
                           child: const Icon(
                             Icons.clear_rounded,
@@ -538,11 +601,11 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                     ],
                   ),
                 ),
-                SingleChildScrollView(
-                  child: isParam
-                      ? Container(
-                          height: 400,
-                          width: 250,
+                isParam
+                    ? Container(
+                        height: 400,
+                        width: 250,
+                        child: SingleChildScrollView(
                           child: Column(
                             children: List.generate(numParam, (int index) {
                               return Padding(
@@ -556,49 +619,58 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                                               const EdgeInsets.only(right: 10),
                                           child: Text(parameters[index]),
                                         ),
-                                        SizedBox(
-                                          width: 100,
-                                          height: 30,
-                                          child: TextField(
-                                            // controller: paramcontroller[index],
-                                            keyboardType: TextInputType.number,
+                                        isValuedParam[index]
+                                            ? SizedBox(
+                                                width: 100,
+                                                height: 30,
+                                                child: TextField(
+                                                  // controller: paramcontroller[index],
+                                                  keyboardType:
+                                                      TextInputType.number,
 
-                                            decoration: const InputDecoration(
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                    color: Colors.blueAccent,
-                                                    width: 1),
+                                                  decoration:
+                                                      const InputDecoration(
+                                                    focusedBorder:
+                                                        OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          color:
+                                                              Colors.blueAccent,
+                                                          width: 1),
+                                                    ),
+                                                    enabledBorder:
+                                                        OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          color: Colors.black,
+                                                          width: 1),
+                                                    ),
+                                                  ),
+                                                  onChanged: (String? value) {
+                                                    if (value != null) {
+                                                      parametersValue[index] =
+                                                          value;
+                                                      print(parameters[index] +
+                                                          " " +
+                                                          parametersValue[
+                                                              index]);
+                                                    }
+                                                  },
+                                                ),
+                                              )
+                                            : Checkbox(
+                                                value: isChecked,
+                                                onChanged: (bool? value) {
+                                                  setState(() {
+                                                    isChecked = value!;
+                                                    if (isChecked)
+                                                      parametersValue[index] =
+                                                          "O";
+                                                    else
+                                                      parametersValue[index] =
+                                                          "N";
+                                                  });
+                                                  print(parametersValue[index]);
+                                                },
                                               ),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                    color: Colors.black,
-                                                    width: 1),
-                                              ),
-                                            ),
-                                            onChanged: (String? value) {
-                                              if (value != null) {
-                                                parametersValue[index] = value;
-                                                print(parameters[index] +
-                                                    " " +
-                                                    parametersValue[index]);
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                        IconButton(
-                                            onPressed: () {
-                                              setState(() {});
-                                            },
-                                            icon: Icon(
-                                              Icons.check_box,
-                                              color: Colors.greenAccent,
-                                            )),
-                                        IconButton(
-                                            onPressed: () {},
-                                            icon: Icon(
-                                              Icons.clear,
-                                              color: Colors.red,
-                                            ))
                                       ],
                                     ),
                                   ],
@@ -606,9 +678,9 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                               );
                             }),
                           ),
-                        )
-                      : null,
-                ),
+                        ),
+                      )
+                    : SizedBox.shrink(),
               ],
             ),
           ),

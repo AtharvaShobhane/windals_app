@@ -30,26 +30,6 @@ class _SupervisorPageState extends State<SupervisorPage> {
     print(jobNames);
   }
 
-  // var jobNames = [
-  //   {
-  //     'stationName': 'station 4',
-  //     'jobName': 'ab11',
-  //     'employeeId': '2',
-  //     'reason': 'qwe'
-  //   },
-  //   {
-  //     'stationName': 'station 2',
-  //     'jobName': 'ad31',
-  //     'employeeId': '4',
-  //     'reason': 'asd'
-  //   },
-  //   {
-  //     'stationName': 'station 3',
-  //     'jobName': 'ad45',
-  //     'employeeId': '4',
-  //     'reason': 'qerwtr'
-  //   }
-  // ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -124,7 +104,7 @@ class _SupervisorPageState extends State<SupervisorPage> {
                                       child: Column(
                                         children: [
                                           Text("Station Name -" , style: TextStyle(color: Colors.black54 , fontSize: 15)),
-                                          Text(jobNames[index]['job_name'] , style: TextStyle(fontSize: 25 , color: Color(0xff1d3557), fontWeight: FontWeight.w800),),
+                                          Text(stationidNamemap[jobNames[index]['station_id']] , style: TextStyle(fontSize: 25 , color: Color(0xff1d3557), fontWeight: FontWeight.w800),),
                                         ],
                                       ),
                                     ),
@@ -151,13 +131,6 @@ class _SupervisorPageState extends State<SupervisorPage> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    ElevatedButton(onPressed: (){
-                                      print(jobNames[index]);
-                                      int stationIdStr = jobNames[index]['station_id'];
-                                      int employeeIdStr = jobNames[index]['employee_id'];
-                                      int machineIdStr = jobNames[index]['machine_id'];
-                                      print("$stationIdStr $employeeIdStr $machineIdStr");
-                                      }, child: Icon(Icons.add)),
                                     ElevatedButton(
                                       onPressed: () async {
                                         //update
@@ -166,7 +139,8 @@ class _SupervisorPageState extends State<SupervisorPage> {
                                         int machineIdStr = jobNames[index]['machine_id'];
                                         print("$stationIdStr $employeeIdStr $machineIdStr");
                                         await http.put(
-                                            Uri.http(base, updateStationyyyy),
+                                            Uri.http(base, updateStationyyyyRework
+                                            ),
                                             body: {
                                               'product_name': jobNames[index]
                                                   ['product_name'],
@@ -214,7 +188,7 @@ class _SupervisorPageState extends State<SupervisorPage> {
                                           int employeeIdStr = jobNames[index]['employee_id'];
                                           int machineIdStr = jobNames[index]['machine_id'];
                                           await http.put(
-                                              Uri.http(base, updateStationyyyy),
+                                              Uri.http(base, updateStationyyyyRework),
                                               body: {
                                                 'product_name': jobNames[index]
                                                     ['product_name'],
@@ -244,7 +218,7 @@ class _SupervisorPageState extends State<SupervisorPage> {
                                           int employeeIdStr = jobNames[index]['employee_id'];
                                           int machineIdStr = jobNames[index]['machine_id'];
                                           await http.put(
-                                              Uri.http(base, updateStationyyyy),
+                                              Uri.http(base, updateStationyyyyRework),
                                               body: {
                                                 'product_name': jobNames[index]
                                                     ['product_name'],
@@ -255,7 +229,7 @@ class _SupervisorPageState extends State<SupervisorPage> {
                                                 'status': '-3',
                                                 'parameters': jobNames[index]
                                                     ['parameters'],
-                                                'machine_id': '$employeeIdStr'
+                                                'machine_id': '$machineIdStr'
                                               });
                                           await http.post(
                                               Uri.http(base,

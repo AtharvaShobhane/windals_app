@@ -8,6 +8,7 @@ bool isdonefirstStation = false;
 
 //lists
 List<String> stationlist = [];
+var stationidNamemap = {};
 List<String> productList = [];
 List<String> jobNames = [];
 var machineList = {};
@@ -27,6 +28,7 @@ String getStationIdStationName = "/api/MobileStationMasterGetOneStationOneProduc
 String getCurrentShift = "/api/ShiftConfigGetCurrentShift";
 String getJobAtSupervisorStation = "/api/StationyyyyReworkJob";
 String getParamStatus = "/api/GetParameterStatus";
+String StationyyyyWorkAtStationInDay = "/api/StationyyyyWorkAtStationInDay";
 
 //post
 String postStationYYYY = '/api/StationyyyyInsertFirst';
@@ -41,5 +43,56 @@ String StationyyyyInsertSameStation = "/api/StationyyyyInsertSameStation";
 
 //put
 String updateStationyyyy = '/api/Stationyyyyupdate';
+String updateStationyyyyRework = '/api/Stationyyyyupdaterework';
 
+
+
+
+// SizedBox(
+// width: 200,
+// height: 100,
+// child: Column(
+// mainAxisAlignment:
+// MainAxisAlignment.start,
+// children: <Widget>[
+// SizedBox(
+// height: 100,
+// width: 200,
+// child: ListTile(
+// title: const Text('OK'),
+// leading: Radio(
+// value: "O",
+// groupValue:
+// selectedOkNotOk,
+// onChanged: (value) {
+// setState(() {
+// selectedOkNotOk =
+// value!;
+// });
+// },
+// ),
+// ),
+// ),
+// ListTile(
+// title:
+// const Text('Not OK'),
+// leading: Radio(
+// value: "N",
+// groupValue:
+// selectedOkNotOk,
+// onChanged: (value) {
+// setState(() {
+// selectedOkNotOk =
+// value!;
+// print(parameters[
+// index] +
+// "=" +
+// selectedOkNotOk);
+// });
+// },
+// ),
+// ),
+// ],
+// ),
+// ),
 
