@@ -7,6 +7,7 @@ import 'package:windals_final/constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:windals_final/globals.dart';
 import 'dart:convert';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 // const List<String> productList = ['Product 1', 'Product 2'];
 
@@ -24,6 +25,7 @@ class _FirstStationState extends State<FirstStation> {
   late String selectedMachine;
   // String employeeId = widget.empId;
   int stationId = 0;
+  bool _isLoading = false;
   @override
   void initState() {
     super.initState();
@@ -180,6 +182,9 @@ class _FirstStationState extends State<FirstStation> {
                       backgroundColor: kred,
                       minimumSize: const Size(270, 45)),
                   onPressed: () async {
+                    setState(() {
+                      _isLoading = true;
+                    });
                     int macId = machineList[selectedMachine];
                     await http.post(Uri.http(base, postProductyyyy), body: {
                       'product_name': selectedProduct,
@@ -224,8 +229,12 @@ class _FirstStationState extends State<FirstStation> {
                     print(selectedProduct);
                     print(macId);
                     controllerjobname.clear();
+                    setState(() {
+                      _isLoading = false;
+                    });
                   },
-                  child: const Text(
+                  child: _isLoading ? LoadingAnimationWidget.threeArchedCircle(
+                      color: Colors.white, size: 20) : const Text(
                     'Add Job',
                     style: TextStyle(fontSize: 18),
                   )),

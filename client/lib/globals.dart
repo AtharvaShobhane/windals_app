@@ -40,59 +40,13 @@ String getOneWorkerStation = "/api/getOneWorkerStation";
 String insertInLoginLog = "/api/loginLogInsert";
 String getMachineAtStation = "/api/MachineMasterGetMachine";
 String StationyyyyInsertSameStation = "/api/StationyyyyInsertSameStation";
+String UndoJobsinStation = "/api/UndoJobsinStation";
+
+
 
 //put
 String updateStationyyyy = '/api/Stationyyyyupdate';
 String updateStationyyyyRework = '/api/Stationyyyyupdaterework';
 
 
-
-
-// SizedBox(
-// width: 200,
-// height: 100,
-// child: Column(
-// mainAxisAlignment:
-// MainAxisAlignment.start,
-// children: <Widget>[
-// SizedBox(
-// height: 100,
-// width: 200,
-// child: ListTile(
-// title: const Text('OK'),
-// leading: Radio(
-// value: "O",
-// groupValue:
-// selectedOkNotOk,
-// onChanged: (value) {
-// setState(() {
-// selectedOkNotOk =
-// value!;
-// });
-// },
-// ),
-// ),
-// ),
-// ListTile(
-// title:
-// const Text('Not OK'),
-// leading: Radio(
-// value: "N",
-// groupValue:
-// selectedOkNotOk,
-// onChanged: (value) {
-// setState(() {
-// selectedOkNotOk =
-// value!;
-// print(parameters[
-// index] +
-// "=" +
-// selectedOkNotOk);
-// });
-// },
-// ),
-// ),
-// ],
-// ),
-// ),
 

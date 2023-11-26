@@ -53,6 +53,8 @@ void main() async {
   var tk = prefs.getString('token');
   String? stationName = prefs.getString('stationName');
   int? empId = prefs.getInt('employeeId');
+  print("------------------------");
+  print("$stationName $empId $tk");
   runApp(MyApp(token: tk, stationName: stationName, empId: empId));
 }
 

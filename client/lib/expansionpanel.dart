@@ -177,7 +177,7 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
     print(stationInfoId[0]['station_id']);
     print(res2);
     setState(() {
-      _isLoginLoader=false;
+      _isLoginLoader = false;
     });
   }
 
@@ -199,6 +199,7 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
   }
 
   void getJobAtStation() async {
+    jobNames.clear();
     final body = {'station_id': "$stationId"};
     res = json.decode(
         (await http.post(Uri.http(base, getjobatstation), body: body)).body);
@@ -228,9 +229,13 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
     DateTime date = new DateTime(now.year, now.month, now.day);
     var finaldate = date.toString().replaceAll("00:00:00.000", "");
     print("$stationId $finaldate");
-    var res = json.decode(
-        (await http.get(Uri.http(base, StationyyyyWorkAtStationInDay , {'stationId' : '$stationId' , 'date' : finaldate}))).body);
+    var res = json.decode((await http.get(Uri.http(
+            base,
+            StationyyyyWorkAtStationInDay,
+            {'stationId': '$stationId', 'date': finaldate})))
+        .body);
     print(res);
+    print("--------------------");
     setState(() {
       _undojobs = res;
     });
@@ -332,27 +337,29 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                 ),
                 _isLoginLoader
                     ? Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10) , color: Color(0xffE63946)),
-                      child: LoadingAnimationWidget.threeArchedCircle(
-                      color: Color(0xffF1FAEE), size: 20),
-                    )
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: Color(0xffE63946)),
+                        child: LoadingAnimationWidget.threeArchedCircle(
+                            color: Color(0xffF1FAEE), size: 20),
+                      )
                     : ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _isLoginLoader = true;
-                      jobNames.clear();
-                      getJobAtStation();
-                      getCount();
-                      getJobSubmittedAtStation();
-                      // getStationId();
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xff457b9d)),
-                  child:Icon(Icons.refresh, color: Colors.white),
-                ),
+                        onPressed: () {
+                          setState(() {
+                            _isLoginLoader = true;
+                            jobNames.clear();
+                            getJobAtStation();
+                            getCount();
+                            getJobSubmittedAtStation();
+                            // getStationId();
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xff457b9d)),
+                        child: Icon(Icons.refresh, color: Colors.white),
+                      ),
               ],
             ),
             DataTable(columns: [
@@ -391,21 +398,47 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                     width: 500,
                     child: Padding(
                       padding: const EdgeInsets.only(top: 5),
-                      child: ListTile(subtitle: Text("Product Name - ${_undojobs[index]['product_name']}" , style: TextStyle(fontWeight: FontWeight.w500),),
-                        tileColor: _undojobs[index]['status'] != 1 ? Color(0xffE63946) : Color(0xff00cc00), // shape: const RoundedRectangleBorder(
+                      child: ListTile(
+                        subtitle: Text(
+                          "Product Name - ${_undojobs[index]['product_name']}",
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        tileColor: _undojobs[index]['status'] != 1
+                            ? Color(0xffE63946)
+                            : Color(
+                                0xff00cc00), // shape: const RoundedRectangleBorder(
                         //   side: BorderSide(width: 1),
                         //   // borderRadius: BorderRadius.circular(10),
                         // ),
                         title: Text(
                           _undojobs[index]['job_name'],
-                          style: TextStyle(fontSize: 17, color: Colors.white , fontWeight: FontWeight.w800),
+                          style: TextStyle(
+                              fontSize: 17,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800),
                         ),
                         trailing: IconButton(
-                          icon: Icon(Icons.undo , color: Colors.white,),
-                          onPressed: () {
-                            setState(() {
-
-                            });
+                          icon: Icon(
+                            Icons.undo,
+                            color: Colors.white,
+                          ),
+                          onPressed: () async {
+                            var res = json.decode((await http.post(
+                              Uri.http(base, UndoJobsinStation),
+                              headers: {
+                                "Content-Type": "application/json"
+                              },
+                              body:jsonEncode( {
+                                "station_id": '$stationId',
+                                "product_name": _undojobs[index]['product_name'],
+                                "job_id": _undojobs[index]['job_id'],
+                                "status": _undojobs[index]['status']
+                              }),
+                            ))
+                                .body);
+                            print(res);
+                            getJobAtStation();
+                            getJobSubmittedAtStation();
                           },
                         ),
                       ),
@@ -542,10 +575,11 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                               'parameters': paramString,
                               'machine_id': '$macid'
                             });
+
                             setState(() {
                               _jobs.removeWhere(
                                   (Item currentItem) => item == currentItem);
-                              _undojobs.add(item);
+                              // _undojobs.add(item);
                             });
 
                             getCount();

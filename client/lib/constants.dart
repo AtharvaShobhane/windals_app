@@ -53,7 +53,12 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
               // token = "";
               jobNames.clear();
               machineList.clear();
-              Navigator.pop(context);
+              // Navigator.pop(context);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (BuildContext context) => const MyProfile()),(route) => false
+              );
+
             },
             icon: Icon(Icons.logout)),
       ],
