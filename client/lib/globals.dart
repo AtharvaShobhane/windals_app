@@ -12,6 +12,7 @@ var stationidNamemap = {};
 List<String> productList = [];
 List<String> jobNames = [];
 var machineList = {};
+var stationNamePosMap = {};
 
 
 //atharva laptop
@@ -29,6 +30,7 @@ String getCurrentShift = "/api/ShiftConfigGetCurrentShift";
 String getJobAtSupervisorStation = "/api/StationyyyyReworkJob";
 String getParamStatus = "/api/GetParameterStatus";
 String StationyyyyWorkAtStationInDay = "/api/StationyyyyWorkAtStationInDay";
+String EmployeeMasterGetOne = "/api/EmployeeMasterGetOne";
 
 //post
 String postStationYYYY = '/api/StationyyyyInsertFirst';

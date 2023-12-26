@@ -70,7 +70,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 const myFooter = BottomAppBar(
-  color: kgrey,
+  color: kdarkblue,
   elevation: 1,
   height: 40,
   child: Center(

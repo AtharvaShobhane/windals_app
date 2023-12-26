@@ -12,8 +12,9 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 // const List<String> productList = ['Product 1', 'Product 2'];
 
 class FirstStation extends StatefulWidget {
-  FirstStation({super.key, required this.empId});
+  FirstStation({super.key, required this.empId , required this.stationName});
   final String empId;
+  final String stationName ;
   @override
   State<FirstStation> createState() => _FirstStationState();
 }
@@ -40,9 +41,18 @@ class _FirstStationState extends State<FirstStation> {
     super.dispose();
   }
 
+  void showFlashError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Center(child: Text(message)),
+      ),
+    );
+  }
+
   void getStationId() async {
+    print(widget.stationName);
     final queParam = {
-      'stationName': "station1", 'productName': selectedProduct
+      'stationName': widget.stationName, 'productName': selectedProduct
     };
     var stationInfoId = json.decode((await http.get(
       Uri.http(base, getStationIdStationName,queParam),headers: {
@@ -51,8 +61,11 @@ class _FirstStationState extends State<FirstStation> {
     ))
         .body);
     print(stationInfoId);
-    stationId = stationInfoId[0]['station_id'];
-
+    try {
+      stationId = stationInfoId[0]['station_id'];
+    }catch(e){
+      showFlashError(context, stationInfoId['msg']);
+    }
     print("-------getStationId---------");
     print("stationId - $stationId   productName  - $selectedProduct ");
     print(stationInfoId);
@@ -83,6 +96,7 @@ class _FirstStationState extends State<FirstStation> {
       appBar: MyAppBar(
         title: 'Windals',
       ),
+      bottomNavigationBar: myFooter,
       // endDrawer: const MyDrawer(),
       body: SingleChildScrollView(
         child: Column(
@@ -205,26 +219,26 @@ class _FirstStationState extends State<FirstStation> {
                           'job_name': jobName,
                           'station_id': '$stationId',
                         });
-                    showDialog(
-                        barrierColor: Colors.transparent,
-                        context: context,
-                        builder: (context) {
-                          Future.delayed(Duration(seconds: 1), () {
-                            Navigator.of(context).pop(true);
-                          });
-                          return Container(
-                            // padding: EdgeInsets.only(bottom: 50),
-                            child: const AlertDialog(
-                              // backgroundColor: Colors.black12,
-                              title: Text(
-                                'Job Successfully Added!',
-                                style:
-                                    TextStyle(fontSize: 12, color: Colors.green),
-                              ),
-                            ),
-                          );
-                        });
-
+                    // showDialog(
+                    //     barrierColor: Colors.transparent,
+                    //     context: context,
+                    //     builder: (context) {
+                    //       Future.delayed(Duration(seconds: 1), () {
+                    //         Navigator.of(context).pop(true);
+                    //       });
+                    //       return Container(
+                    //         // padding: EdgeInsets.only(bottom: 50),
+                    //         child: const AlertDialog(
+                    //           // backgroundColor: Colors.black12,
+                    //           title: Text(
+                    //             'Job Successfully Added!',
+                    //             style:
+                    //                 TextStyle(fontSize: 12, color: Colors.green),
+                    //           ),
+                    //         ),
+                    //       );
+                    //     });
+                    showFlashError(context, "Job Added SuccessFully");
                     print(jobName);
                     print(selectedProduct);
                     print(macId);

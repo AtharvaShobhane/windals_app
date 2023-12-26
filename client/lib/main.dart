@@ -110,6 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // print(i['station_name']);
       stationlist.add(i['station_name']);
       stationidNamemap[i['station_id']] = i['station_name'];
+      stationNamePosMap[i['station_name']] = i['position'];
     }
     print(stationlist);
     await Future.delayed(const Duration(seconds: 2));
@@ -354,12 +355,12 @@ class _MyHomePageState extends State<MyHomePage> {
                           if (JwtDecoder.isExpired(widget.token) == false) {
                             isloggedin = true;
 
-                            if (widget.stationName == 'station 1') {
+                            if (stationNamePosMap[widget.stationName] == 1) {
                               // Navigator.pop(context);
                               Navigator.push(
                                 context,
                                 CupertinoPageRoute(
-                                    builder: (context) => FirstStation(empId: widget.empId.toString(),)),
+                                    builder: (context) => FirstStation(empId: widget.empId.toString(),stationName: widget.stationName,)),
                               );
                             } else {
                               // Navigator.pop(context);

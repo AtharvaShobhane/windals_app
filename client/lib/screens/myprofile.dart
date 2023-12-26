@@ -13,7 +13,6 @@ import 'package:windals_final/globals.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:intl/intl.dart';
 import 'package:windals_final/screens/supervisorPage.dart';
 
 class MyProfile extends StatefulWidget {
@@ -38,6 +37,7 @@ class _MyProfileState extends State<MyProfile> {
   late SharedPreferences pref;
   bool _isLoginLoader = false;
   late int currentShift;
+  int position =0;
 
   @override
   void initState() {
@@ -98,7 +98,7 @@ class _MyProfileState extends State<MyProfile> {
     var finaldate = date.toString().replaceAll("00:00:00.000", "");
     print(finaldate);
     List<String> workerStation=[];
-
+    List<int> workerStationPos=[];
     var empStation = json.decode((await http.get(
       Uri.http(base, getOneWorkerStation, {
         'employeeId': "$employeeID",
@@ -115,6 +115,7 @@ class _MyProfileState extends State<MyProfile> {
     try {
       for(var i in empStation){
         workerStation.add(i['station_name']);
+        // workerStationPos.add(i['position']);
       }
       msg = workerStation;
       return msg;
@@ -309,6 +310,7 @@ class _MyProfileState extends State<MyProfile> {
                   setState(() {
                     _isLoginLoader = true;
                   });
+                  getCurrentShiftFunc();
                   loginMessage(userName!, password!).then((mssg) async {
                     pref.setString("useName", userName!);
                     pref.setString("password", password!);
@@ -338,7 +340,7 @@ class _MyProfileState extends State<MyProfile> {
                       Navigator.push(
                           context,
                           CupertinoPageRoute(
-                              builder: (context) => HomeScreen(stationName: stationNames, isStationAllocated: isStationAllocated , empId: employeeID!,)));
+                              builder: (context) => HomeScreen(stationName: stationNames, isStationAllocated: isStationAllocated , empId: employeeID!, userName : userName!)));
 
                     } else {
                       print("NO LOGIN!!");
@@ -372,16 +374,16 @@ class _MyProfileState extends State<MyProfile> {
                         ),
                       ),
               ),
-              ElevatedButton(
-                  onPressed: () {
-                    //supervisor page
-                    Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => SupervisorPage(),
-                        ));
-                  },
-                  child: Text("Supervisor Page")),
+              // ElevatedButton(
+              //     onPressed: () {
+              //       //supervisor page
+              //       Navigator.push(
+              //           context,
+              //           CupertinoPageRoute(
+              //             builder: (context) => SupervisorPage(),
+              //           ));
+              //     },
+              //     child: Text("Supervisor Page")),
               Padding(
                 padding: const EdgeInsets.only(top: 10),
                 child: Text(

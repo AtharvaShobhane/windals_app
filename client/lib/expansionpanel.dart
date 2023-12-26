@@ -390,7 +390,7 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
               thickness: 3,
             ),
             Container(
-              height: 300,
+              height: 500,
               child: ListView.builder(
                 itemCount: _undojobs.length,
                 itemBuilder: (BuildContext context, int index) {
@@ -398,48 +398,50 @@ class _ExpansionPanelDemoState extends State<ExpansionPanelDemo> {
                     width: 500,
                     child: Padding(
                       padding: const EdgeInsets.only(top: 5),
-                      child: ListTile(
-                        subtitle: Text(
-                          "Product Name - ${_undojobs[index]['product_name']}",
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        tileColor: _undojobs[index]['status'] != 1
-                            ? Color(0xffE63946)
-                            : Color(
-                                0xff00cc00), // shape: const RoundedRectangleBorder(
-                        //   side: BorderSide(width: 1),
-                        //   // borderRadius: BorderRadius.circular(10),
-                        // ),
-                        title: Text(
-                          _undojobs[index]['job_name'],
-                          style: TextStyle(
-                              fontSize: 17,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800),
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(
-                            Icons.undo,
-                            color: Colors.white,
+                      child: Card(
+                        child: ListTile(
+                          subtitle: Text(
+                            "Product Name - ${_undojobs[index]['product_name']}",
+                            style: TextStyle(fontWeight: FontWeight.w500),
                           ),
-                          onPressed: () async {
-                            var res = json.decode((await http.post(
-                              Uri.http(base, UndoJobsinStation),
-                              headers: {
-                                "Content-Type": "application/json"
-                              },
-                              body:jsonEncode( {
-                                "station_id": '$stationId',
-                                "product_name": _undojobs[index]['product_name'],
-                                "job_id": _undojobs[index]['job_id'],
-                                "status": _undojobs[index]['status']
-                              }),
-                            ))
-                                .body);
-                            print(res);
-                            getJobAtStation();
-                            getJobSubmittedAtStation();
-                          },
+                          tileColor: _undojobs[index]['status'] != 1
+                              ? Color(0xffE63946)
+                              : Color(
+                                  0xff00cc00), // shape: const RoundedRectangleBorder(
+                          //   side: BorderSide(width: 1),
+                          //   // borderRadius: BorderRadius.circular(10),
+                          // ),
+                          title: Text(
+                            _undojobs[index]['job_name'],
+                            style: TextStyle(
+                                fontSize: 17,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800),
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(
+                              Icons.undo,
+                              color: Colors.white,
+                            ),
+                            onPressed: () async {
+                              var res = json.decode((await http.post(
+                                Uri.http(base, UndoJobsinStation),
+                                headers: {
+                                  "Content-Type": "application/json"
+                                },
+                                body:jsonEncode( {
+                                  "station_id": '$stationId',
+                                  "product_name": _undojobs[index]['product_name'],
+                                  "job_id": _undojobs[index]['job_id'],
+                                  "status": _undojobs[index]['status']
+                                }),
+                              ))
+                                  .body);
+                              print(res);
+                              getJobAtStation();
+                              getJobSubmittedAtStation();
+                            },
+                          ),
                         ),
                       ),
                     ),
